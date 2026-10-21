@@ -1,4 +1,5 @@
 import "server-only";
+import { wedding } from "./config";
 import type { Photo } from "./types";
 
 // Integração com o Google Drive via REST, autenticada com o refresh token
@@ -101,18 +102,12 @@ export async function listPhotos(): Promise<Photo[]> {
 
   const q = `'${env().folderId}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`;
   const fields =
-    "nextPageToken,files(id,name,mimeType,description,appProperties,imageMediaMetadata(width,height,rotation),videoMediaMetadata(width,height))";
-  const files: DriveFile[] = [];
-  let pageToken = "";
-  do {
-    const params = new URLSearchParams({ q, fields, orderBy: "createdTime desc", pageSize: "1000" });
-    if (pageToken) params.set("pageToken", pageToken);
-    const res = await driveFetch(`${API}/files?${params}`);
-    if (!res.ok) throw new Error(`Falha ao listar fotos: ${res.status} ${await res.text()}`);
-    const json = (await res.json()) as { files: DriveFile[]; nextPageToken?: string };
-    files.push(...json.files);
-    pageToken = json.nextPageToken ?? "";
-  } while (pageToken);
+    "files(id,name,mimeType,description,appProperties,imageMediaMetadata(width,height,rotation),videoMediaMetadata(width,height))";
+  // Só as mais recentes: o álbum mostra as últimas `galleryLimit` fotos.
+  const params = new URLSearchParams({ q, fields, orderBy: "createdTime desc", pageSize: String(wedding.galleryLimit) });
+  const res = await driveFetch(`${API}/files?${params}`);
+  if (!res.ok) throw new Error(`Falha ao listar fotos: ${res.status} ${await res.text()}`);
+  const { files } = (await res.json()) as { files: DriveFile[] };
 
   const photos = files.map(toPhoto);
   listCache = { at: Date.now(), photos };

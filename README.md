@@ -15,7 +15,7 @@ Abra http://localhost:3000. Sem o Google Drive configurado, o site roda em **mod
 
 ## Personalizar
 
-- `lib/config.ts`: nomes, data, estilo da capa (`editorial` ou `cinematic`), estilo do álbum (`mosaic` ou `square`), nome obrigatório e tamanho máximo dos arquivos.
+- `lib/config.ts`: nomes, data, estilo da capa (`editorial` ou `cinematic`), estilo do álbum (`mosaic` ou `square`), quantas fotos o álbum mostra (`galleryLimit`, padrão 10), nome obrigatório e tamanho máximo dos arquivos.
 - `public/assets/`: fotos do pré-wedding (`ja-1.jpg`, `ja-2.jpg`, `ja-3.jpg`).
 - `app/globals.css`: cores e estilos (tokens no topo do arquivo).
 
@@ -33,7 +33,7 @@ O site usa a conta Google dos noivos, com a permissão `drive.file`: ele só enx
    Abra o link, entre com a conta dos noivos e autorize. Se aparecer o aviso "app não verificado", clique em *Avançado → Acessar*. O script cria a pasta do álbum no Drive e mostra `GOOGLE_REFRESH_TOKEN` e `GOOGLE_DRIVE_FOLDER_ID`.
 5. Copie `.env.example` para `.env.local` e preencha as quatro variáveis.
 
-Cada envio vira um arquivo na pasta com o nome do convidado no nome do arquivo e o recado na descrição.
+Cada envio vira um arquivo na pasta com o nome do convidado no nome do arquivo e o recado na descrição. O site mostra só as fotos mais recentes, mas todas continuam guardadas na pasta do Drive.
 
 ## Publicar na Vercel
 

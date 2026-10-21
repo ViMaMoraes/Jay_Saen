@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { coupleName, wedding } from "@/lib/config";
 import type { Photo } from "@/lib/types";
-import { CameraIcon, PlayIcon, UploadIcon } from "./icons";
+import { CameraIcon, DownloadIcon, PlayIcon, UploadIcon } from "./icons";
 import Lightbox from "./Lightbox";
 import UploadModal, { type Step } from "./UploadModal";
 import { mediaType, uploadFile, type Picked } from "./upload";
@@ -38,8 +38,7 @@ export default function WeddingSite({ initialPhotos, demo }: Props) {
       const mine = localById.get(p.id);
       return mine ? { ...p, src: mine.src, thumb: mine.thumb } : p;
     }),
-  ];
-  const guests = new Set(photos.map((p) => p.guest)).size;
+  ].slice(0, wedding.galleryLimit);
 
   useEffect(() => {
     const days = Math.ceil((wedding.date.getTime() - Date.now()) / 86_400_000);
@@ -125,7 +124,7 @@ export default function WeddingSite({ initialPhotos, demo }: Props) {
             id,
             src: it.url,
             thumb: it.url,
-            download: "",
+            download: it.url,
             fileName: it.file.name,
             ratio: "3/4",
             guest: name,
@@ -265,7 +264,7 @@ export default function WeddingSite({ initialPhotos, demo }: Props) {
           {[
             ["I", "Escolha as fotos", "Direto da galeria do celular, quantas quiser. Fotos e vídeos curtos."],
             ["II", "Deixe seu nome", "E, se quiser, um recado para os noivos junto com as fotos."],
-            ["III", "Reviva no álbum", "Todas as fotos ficam aqui, para ver e baixar quando quiser."],
+            ["III", "Reviva no álbum", "As fotos mais recentes aparecem aqui, para ver e baixar quando quiser."],
           ].map(([n, title, text]) => (
             <div className="step" key={n}>
               <div className="step-num">{n}</div>
@@ -285,7 +284,9 @@ export default function WeddingSite({ initialPhotos, demo }: Props) {
             <h2>Nosso dia, pelos seus olhos</h2>
           </div>
           <div className="muted tnum" style={{ fontSize: 14 }}>
-            {photos.length} {photos.length === 1 ? "foto" : "fotos"} · {guests} {guests === 1 ? "convidado" : "convidados"}
+            {photos.length >= wedding.galleryLimit
+              ? `As ${wedding.galleryLimit} fotos mais recentes`
+              : `${photos.length} ${photos.length === 1 ? "foto" : "fotos"}`}
           </div>
         </div>
 
@@ -385,31 +386,38 @@ function Tile({ photo: p, onOpen, showGuest }: { photo: Photo; onOpen: () => voi
   const [broken, setBroken] = useState(false);
   const isLocal = p.thumb.startsWith("blob:");
   return (
-    <button className="tile" onClick={onOpen} aria-label={`Abrir foto enviada por ${p.guest}`}>
-      {p.thumb && !broken ? (
-        p.isVideo && isLocal ? (
-          <video className="tile-media" src={p.thumb} muted playsInline preload="metadata" style={{ aspectRatio: p.ratio }} />
+    <div className="tile-wrap">
+      <button className="tile" onClick={onOpen} aria-label={`Abrir foto enviada por ${p.guest}`}>
+        {p.thumb && !broken ? (
+          p.isVideo && isLocal ? (
+            <video className="tile-media" src={p.thumb} muted playsInline preload="metadata" style={{ aspectRatio: p.ratio }} />
+          ) : (
+            <img
+              className="tile-media"
+              src={p.thumb}
+              alt={`Foto enviada por ${p.guest}`}
+              loading="lazy"
+              style={{ aspectRatio: isLocal ? undefined : p.ratio }}
+              onError={() => setBroken(true)}
+            />
+          )
         ) : (
-          <img
-            className="tile-media"
-            src={p.thumb}
-            alt={`Foto enviada por ${p.guest}`}
-            loading="lazy"
-            style={{ aspectRatio: isLocal ? undefined : p.ratio }}
-            onError={() => setBroken(true)}
-          />
-        )
-      ) : (
-        <div className="placeholder" style={{ aspectRatio: p.ratio }}>
-          {broken ? "processando…" : "foto do convidado"}
-        </div>
+          <div className="placeholder" style={{ aspectRatio: p.ratio }}>
+            {broken ? "processando…" : "foto do convidado"}
+          </div>
+        )}
+        {p.isVideo && (
+          <span className="badge">
+            <PlayIcon /> vídeo
+          </span>
+        )}
+        {showGuest && <span className="tile-guest">{p.guest}</span>}
+      </button>
+      {p.download && (
+        <a className="tile-download" href={p.download} download={p.fileName} aria-label={`Baixar foto enviada por ${p.guest}`}>
+          <DownloadIcon />
+        </a>
       )}
-      {p.isVideo && (
-        <span className="badge">
-          <PlayIcon /> vídeo
-        </span>
-      )}
-      {showGuest && <span className="tile-guest">{p.guest}</span>}
-    </button>
+    </div>
   );
 }
