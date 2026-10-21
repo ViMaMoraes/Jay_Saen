@@ -1,0 +1,62 @@
+# Casamento Jayane & Anderson
+
+Site do casamento (14/11/2026). Os convidados enviam as fotos e vídeos que tiraram no dia, que vão direto para uma pasta no Google Drive dos noivos e aparecem no álbum do site.
+
+Feito com Next.js a partir do protótipo de design "Classical" (Cormorant Garamond + Lora, tons dourados).
+
+## Rodar no computador
+
+```bash
+npm install
+npm run dev
+```
+
+Abra http://localhost:3000. Sem o Google Drive configurado, o site roda em **modo demonstração**: mostra fotos de exemplo, e os envios aparecem só no próprio aparelho.
+
+## Personalizar
+
+- `lib/config.ts`: nomes, data, estilo da capa (`editorial` ou `cinematic`), estilo do álbum (`mosaic` ou `square`), nome obrigatório e tamanho máximo dos arquivos.
+- `public/assets/`: fotos do pré-wedding (`ja-1.jpg`, `ja-2.jpg`, `ja-3.jpg`).
+- `app/globals.css`: cores e estilos (tokens no topo do arquivo).
+
+## Conectar ao Google Drive
+
+O site usa a conta Google dos noivos, com a permissão `drive.file`: ele só enxerga a pasta e os arquivos que ele mesmo cria, e nada mais do Drive.
+
+1. No [Google Cloud Console](https://console.cloud.google.com/), crie um projeto e ative a **Google Drive API**.
+2. Em **APIs e serviços → Tela de consentimento OAuth**, configure o app como *Externo* e adicione o e-mail dos noivos. Depois clique em **Publicar app** (status "Em produção"). Em modo "Teste" o acesso expira em 7 dias e o envio para de funcionar.
+3. Em **Credenciais → Criar credenciais → ID do cliente OAuth**, escolha *App para computador*. Anote o Client ID e o Client Secret.
+4. No seu computador, rode:
+   ```bash
+   GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... npm run google:auth
+   ```
+   Abra o link, entre com a conta dos noivos e autorize. Se aparecer o aviso "app não verificado", clique em *Avançado → Acessar*. O script cria a pasta do álbum no Drive e mostra `GOOGLE_REFRESH_TOKEN` e `GOOGLE_DRIVE_FOLDER_ID`.
+5. Copie `.env.example` para `.env.local` e preencha as quatro variáveis.
+
+Cada envio vira um arquivo na pasta com o nome do convidado no nome do arquivo e o recado na descrição.
+
+## Publicar na Vercel
+
+1. Importe este repositório em https://vercel.com/new (o Next.js é detectado sozinho).
+2. Em *Settings → Environment Variables*, adicione as quatro variáveis do `.env.local`.
+3. Faça o deploy. Se quiser, aponte um domínio próprio em *Settings → Domains*.
+
+Os arquivos vão do celular do convidado direto para o Google Drive (upload resumível), então não há limite de tamanho do servidor, e vídeos grandes também funcionam.
+
+## Estrutura
+
+```
+app/
+  page.tsx                 página (carrega o álbum no servidor)
+  api/upload/route.ts      abre a sessão de envio no Drive
+  api/photos/route.ts      lista as fotos do álbum
+  api/photos/[id]/route.ts miniatura / download de um arquivo
+components/
+  WeddingSite.tsx          capa, casal, como funciona, álbum
+  UploadModal.tsx          formulário e progresso do envio
+  Lightbox.tsx             foto em tela cheia
+lib/
+  config.ts                dados do casamento
+  drive.ts                 integração com o Google Drive
+scripts/get-refresh-token.mjs  autorização do Google
+```
