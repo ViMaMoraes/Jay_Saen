@@ -1,20 +1,16 @@
 import WeddingSite from "@/components/WeddingSite";
-import { demoPhotos } from "@/lib/demo";
-import { driveConfigured, listPhotos } from "@/lib/drive";
+import { wedding } from "@/lib/config";
+import { getPhotos } from "@/lib/photos";
 import type { Photo } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const demo = !driveConfigured();
-  let photos: Photo[] = demoPhotos;
-  if (!demo) {
-    try {
-      photos = await listPhotos();
-    } catch (err) {
-      console.error(err);
-      photos = [];
-    }
+  let photos: Photo[] = [];
+  try {
+    photos = (await getPhotos(wedding.homePreviewCount)).photos;
+  } catch (err) {
+    console.error(err);
   }
-  return <WeddingSite initialPhotos={photos} demo={demo} />;
+  return <WeddingSite recentPhotos={photos} />;
 }

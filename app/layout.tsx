@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Lora } from "next/font/google";
+import UploadProvider from "@/components/UploadProvider";
 import { coupleName, wedding } from "@/lib/config";
+import { driveConfigured } from "@/lib/drive";
 import "./globals.css";
 
 const heading = Cormorant_Garamond({
@@ -33,7 +35,10 @@ export const viewport: Viewport = { themeColor: "#f3f2f2" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${heading.variable} ${body.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* Fica no layout para o envio e as fotos recém-enviadas sobreviverem à troca de página. */}
+        <UploadProvider demo={!driveConfigured()}>{children}</UploadProvider>
+      </body>
     </html>
   );
 }

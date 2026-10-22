@@ -1,5 +1,4 @@
 import "server-only";
-import { wedding } from "./config";
 import type { Photo } from "./types";
 
 // Integração com o Google Drive via REST, autenticada com o refresh token
@@ -95,27 +94,33 @@ type DriveFile = {
   videoMediaMetadata?: { width?: number; height?: number };
 };
 
-let listCache: { at: number; photos: Photo[] } | null = null;
+export type PhotoPage = { photos: Photo[]; nextCursor: string | null };
 
-export async function listPhotos(): Promise<Photo[]> {
-  if (listCache && Date.now() - listCache.at < 15_000) return listCache.photos;
+// Cache curto por página, para não consultar o Drive a cada visita.
+const listCache = new Map<string, { at: number; page: PhotoPage }>();
+
+/** As fotos mais recentes primeiro, `limit` por página. */
+export async function listPhotos(limit: number, cursor?: string | null): Promise<PhotoPage> {
+  const key = `${limit}:${cursor ?? ""}`;
+  const hit = listCache.get(key);
+  if (hit && Date.now() - hit.at < 15_000) return hit.page;
 
   const q = `'${env().folderId}' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')`;
   const fields =
-    "files(id,name,mimeType,description,appProperties,imageMediaMetadata(width,height,rotation),videoMediaMetadata(width,height))";
-  // Só as mais recentes: o álbum mostra as últimas `galleryLimit` fotos.
-  const params = new URLSearchParams({ q, fields, orderBy: "createdTime desc", pageSize: String(wedding.galleryLimit) });
+    "nextPageToken,files(id,name,mimeType,description,appProperties,imageMediaMetadata(width,height,rotation),videoMediaMetadata(width,height))";
+  const params = new URLSearchParams({ q, fields, orderBy: "createdTime desc", pageSize: String(limit) });
+  if (cursor) params.set("pageToken", cursor);
   const res = await driveFetch(`${API}/files?${params}`);
   if (!res.ok) throw new Error(`Falha ao listar fotos: ${res.status} ${await res.text()}`);
-  const { files } = (await res.json()) as { files: DriveFile[] };
+  const json = (await res.json()) as { files: DriveFile[]; nextPageToken?: string };
 
-  const photos = files.map(toPhoto);
-  listCache = { at: Date.now(), photos };
-  return photos;
+  const page = { photos: json.files.map(toPhoto), nextCursor: json.nextPageToken ?? null };
+  listCache.set(key, { at: Date.now(), page });
+  return page;
 }
 
 export function invalidatePhotos() {
-  listCache = null;
+  listCache.clear();
 }
 
 function toPhoto(f: DriveFile): Photo {

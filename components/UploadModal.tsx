@@ -21,6 +21,7 @@ type Props = {
   onClose: () => void;
   onSendMore: () => void;
   onSeeAlbum: () => void;
+  seeAlbumLabel: string;
 };
 
 export default function UploadModal(p: Props) {
@@ -135,7 +136,7 @@ export default function UploadModal(p: Props) {
                 Enviar mais
               </button>
               <button className="btn" onClick={p.onSeeAlbum}>
-                Ver no álbum
+                {p.seeAlbumLabel}
               </button>
             </div>
           </div>

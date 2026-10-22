@@ -11,8 +11,10 @@ export const wedding = {
   heroStyle: "editorial" as "editorial" | "cinematic",
   // "mosaic" (alturas variadas) ou "square" (grade quadrada).
   galleryStyle: "mosaic" as "mosaic" | "square",
-  // Quantas fotos o álbum mostra (as mais recentes).
-  galleryLimit: 10,
+  // Quantas fotos recentes aparecem na página inicial.
+  homePreviewCount: 5,
+  // Quantas fotos a galeria carrega por vez.
+  galleryPageSize: 24,
   // Exigir o nome do convidado para enviar fotos.
   requireName: true,
   // Tamanho máximo por arquivo (fotos e vídeos curtos).

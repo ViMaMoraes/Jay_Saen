@@ -345,3 +345,13 @@ textarea.input { resize: vertical; }
 .lb-caption { padding: 16px 20px 22px; text-align: center; }
 .lb-guest { font-family: var(--font-heading); font-size: 20px; font-style: italic; }
 .lb-msg { font-size: 14px; color: var(--color-neutral-300); max-width: 52ch; margin: 6px auto 0; line-height: 1.55; }
+
+/* — galeria — */
+.more { display: flex; justify-content: center; margin-top: clamp(28px, 4vw, 48px); }
+.back-link {
+  display: inline-flex; align-items: center; gap: 4px; margin-bottom: var(--space-6);
+  font-size: 14px; color: var(--color-neutral-700); text-decoration: none;
+}
+.back-link:hover { color: var(--color-accent-700); }
+.page-title { font-size: clamp(40px, 6vw, 64px); line-height: 1; margin-top: 10px; }
+.gallery-actions { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
