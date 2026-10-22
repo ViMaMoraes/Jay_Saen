@@ -35,11 +35,22 @@ O site usa a conta Google dos noivos, com a permissão `drive.file`: ele só enx
 
 Cada envio vira um arquivo na pasta com o nome do convidado no nome do arquivo e o recado na descrição. O site mostra só as fotos mais recentes, mas todas continuam guardadas na pasta do Drive.
 
-## Publicar na Vercel
+## Publicar na Cloudflare
 
-1. Importe este repositório em https://vercel.com/new (o Next.js é detectado sozinho).
-2. Em *Settings → Environment Variables*, adicione as quatro variáveis do `.env.local`.
-3. Faça o deploy. Se quiser, aponte um domínio próprio em *Settings → Domains*.
+O site tem partes que rodam no servidor (envio e listagem das fotos), então ele vai como **Worker**, e não como Pages estático. O adaptador [OpenNext](https://opennext.js.org/cloudflare) já está configurado (`wrangler.jsonc` e `open-next.config.ts`).
+
+1. No painel da Cloudflare: **Workers & Pages → Create → Workers → Import a repository** e escolha este repositório.
+2. Configure o build:
+   - **Build command:** `npx opennextjs-cloudflare build`
+   - **Deploy command:** `npx opennextjs-cloudflare deploy`
+3. Depois do primeiro deploy, em **Settings → Variables and Secrets** do Worker, adicione as quatro variáveis do `.env.local` (de preferência como *Secret*) e faça um novo deploy.
+4. Se quiser, aponte um domínio próprio em **Settings → Domains & Routes**.
+
+Para testar localmente no mesmo ambiente da Cloudflare: coloque as variáveis num arquivo `.dev.vars` e rode `npm run preview`. Para publicar direto do computador: `npm run deploy`.
+
+### Alternativa: Vercel
+
+Importe o repositório em https://vercel.com/new, adicione as quatro variáveis em *Settings → Environment Variables* e faça o deploy.
 
 Os arquivos vão do celular do convidado direto para o Google Drive (upload resumível), então não há limite de tamanho do servidor, e vídeos grandes também funcionam.
 
