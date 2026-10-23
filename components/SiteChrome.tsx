@@ -30,7 +30,9 @@ export function SiteFooter() {
       <span className="footer-brand">
         {wedding.bride} <span className="amp">&amp;</span> {wedding.groom}
       </span>
-      <span>As fotos são guardadas no álbum dos noivos no Google Drive.</span>
+      <span>
+        As fotos são guardadas no álbum dos noivos no Google Drive. <Link href="/privacidade">Privacidade</Link>
+      </span>
     </footer>
   );
 }
