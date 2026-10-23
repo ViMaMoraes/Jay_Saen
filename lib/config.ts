@@ -13,8 +13,8 @@ export const wedding = {
   galleryStyle: "mosaic" as "mosaic" | "square",
   // Quantas fotos recentes aparecem na página inicial.
   homePreviewCount: 5,
-  // Quantas fotos a galeria carrega por vez.
-  galleryPageSize: 24,
+  // Opções de fotos por página na galeria (a primeira é o padrão).
+  galleryPageSizes: [25, 50, 100],
   // Exigir o nome do convidado para enviar fotos.
   requireName: true,
   // Tamanho máximo por arquivo (fotos e vídeos curtos).

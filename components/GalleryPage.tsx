@@ -1,15 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { wedding } from "@/lib/config";
 import type { Photo } from "@/lib/types";
 import { CameraIcon, ChevronLeftIcon } from "./icons";
+import { PageNumbers, PageSummary } from "./Pagination";
 import PhotoGrid from "./PhotoGrid";
 import { Dropzone, SiteFooter, SiteNav } from "./SiteChrome";
 import { useUpload } from "./UploadProvider";
 
-export default function GalleryPage({ photos, cursor }: { photos: Photo[]; cursor: string | null }) {
+type Props = { photos: Photo[]; total: number; page: number; perPage: number };
+
+export default function GalleryPage({ photos, total: initialTotal, page, perPage }: Props) {
   const { openUpload } = useUpload();
+  const [total, setTotal] = useState(initialTotal);
+  useEffect(() => setTotal(initialTotal), [initialTotal]);
+
   return (
     <>
       <SiteNav />
@@ -33,7 +40,9 @@ export default function GalleryPage({ photos, cursor }: { photos: Photo[]; curso
             </button>
           </div>
         </div>
-        <PhotoGrid initialPhotos={photos} initialCursor={cursor} />
+        <PageSummary page={page} perPage={perPage} total={total} />
+        <PhotoGrid initialPhotos={photos} limit={perPage} offset={(page - 1) * perPage} onTotal={setTotal} />
+        <PageNumbers page={page} perPage={perPage} total={total} />
         <Dropzone />
       </main>
       <SiteFooter />

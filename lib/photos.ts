@@ -1,22 +1,18 @@
 import "server-only";
 import { demoPhotos } from "./demo";
-import { driveConfigured, invalidatePhotos, listPhotos, type PhotoPage } from "./drive";
+import { driveConfigured, invalidatePhotos, listAllPhotos } from "./drive";
+import type { Photo } from "./types";
 
-export type { PhotoPage };
-
+export type PhotoPage = { photos: Photo[]; total: number };
 export type PhotoResult = PhotoPage & { demo: boolean };
 
-/** Uma página do álbum: do Google Drive, ou as fotos de exemplo no modo demonstração. */
-export async function getPhotos(limit: number, cursor?: string | null, fresh = false): Promise<PhotoResult> {
-  if (!driveConfigured()) {
-    const start = Number(cursor) || 0;
-    const end = start + limit;
-    return {
-      photos: demoPhotos.slice(start, end),
-      nextCursor: end < demoPhotos.length ? String(end) : null,
-      demo: true,
-    };
-  }
-  if (fresh) invalidatePhotos();
-  return { ...(await listPhotos(limit, cursor)), demo: false };
+/**
+ * Um trecho do álbum (as mais recentes primeiro): do Google Drive, ou as
+ * fotos de exemplo no modo demonstração.
+ */
+export async function getPhotos(limit: number, offset = 0, fresh = false): Promise<PhotoResult> {
+  const demo = !driveConfigured();
+  if (fresh && !demo) invalidatePhotos();
+  const all = demo ? demoPhotos : await listAllPhotos();
+  return { photos: all.slice(offset, offset + limit), total: all.length, demo };
 }

@@ -10,33 +10,33 @@ import { useUpload } from "./UploadProvider";
 
 type Props = {
   initialPhotos: Photo[];
-  initialCursor: string | null;
-  /** Mostra só as `preview` mais recentes, sem "carregar mais" (página inicial). */
-  preview?: number;
+  /** Quantas fotos mostrar e a partir de qual (as mais recentes primeiro). */
+  limit: number;
+  offset?: number;
+  /** Avisa o novo total de fotos depois de recarregar (para a paginação). */
+  onTotal?: (total: number) => void;
 };
 
-type Page = { photos: Photo[]; nextCursor: string | null };
-
-export default function PhotoGrid({ initialPhotos, initialCursor, preview }: Props) {
+export default function PhotoGrid({ initialPhotos, limit, offset = 0, onTotal }: Props) {
   const { demo, local, version, setLightboxOpen } = useUpload();
   const [serverPhotos, setServerPhotos] = useState(initialPhotos);
-  const [cursor, setCursor] = useState(initialCursor);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [lb, setLb] = useState(-1);
-  const pageSize = preview ?? wedding.galleryPageSize;
 
-  // Recarrega a primeira página (fotos novas) e mantém as que já foram carregadas.
+  // Trocar de página na galeria reaproveita o componente com novas fotos.
+  useEffect(() => {
+    setServerPhotos(initialPhotos);
+    setLb(-1);
+  }, [initialPhotos]);
+
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch(`/api/photos?limit=${pageSize}&fresh=1`, { cache: "no-store" });
+      const res = await fetch(`/api/photos?limit=${limit}&offset=${offset}&fresh=1`, { cache: "no-store" });
       if (!res.ok) return;
-      const page = (await res.json()) as Page;
-      setServerPhotos((prev) => {
-        const ids = new Set(page.photos.map((p) => p.id));
-        return [...page.photos, ...prev.filter((p) => !ids.has(p.id))];
-      });
+      const page = (await res.json()) as { photos: Photo[]; total: number };
+      setServerPhotos(page.photos);
+      onTotal?.(page.total);
     } catch {}
-  }, [pageSize]);
+  }, [limit, offset, onTotal]);
 
   useEffect(() => {
     if (version) refresh();
@@ -48,34 +48,17 @@ export default function PhotoGrid({ initialPhotos, initialCursor, preview }: Pro
     return () => clearInterval(t);
   }, [demo, refresh]);
 
-  const loadMore = async () => {
-    if (!cursor) return;
-    setLoadingMore(true);
-    try {
-      const res = await fetch(`/api/photos?limit=${pageSize}&cursor=${encodeURIComponent(cursor)}`);
-      if (res.ok) {
-        const page = (await res.json()) as Page;
-        setServerPhotos((prev) => {
-          const ids = new Set(prev.map((p) => p.id));
-          return [...prev, ...page.photos.filter((p) => !ids.has(p.id))];
-        });
-        setCursor(page.nextCursor);
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
+  // Fotos enviadas nesta visita: aparecem no topo da primeira página e usam a
+  // imagem do aparelho enquanto o Drive gera a miniatura.
   const localById = new Map(local.map((p) => [p.id, p]));
   const serverIds = new Set(serverPhotos.map((p) => p.id));
-  let photos: Photo[] = [
-    ...local.filter((p) => !serverIds.has(p.id)),
+  const photos: Photo[] = [
+    ...(offset === 0 ? local.filter((p) => !serverIds.has(p.id)) : []),
     ...serverPhotos.map((p) => {
       const mine = localById.get(p.id);
-      return mine ? { ...p, src: mine.src, thumb: mine.thumb } : p;
+      return mine ? { ...p, src: mine.src, thumb: mine.thumb, download: p.download || mine.download } : p;
     }),
-  ];
-  if (preview) photos = photos.slice(0, preview);
+  ].slice(0, limit);
 
   useEffect(() => setLightboxOpen(lb >= 0), [lb, setLightboxOpen]);
   const closeLb = useCallback(() => setLb(-1), []);
@@ -90,14 +73,6 @@ export default function PhotoGrid({ initialPhotos, initialCursor, preview }: Pro
           {photos.map((p, i) => (
             <Tile key={p.id} photo={p} onOpen={() => setLb(i)} showGuest={wedding.galleryStyle === "mosaic"} />
           ))}
-        </div>
-      )}
-
-      {!preview && cursor && (
-        <div className="more">
-          <button className="btn btn-neutral" onClick={loadMore} disabled={loadingMore}>
-            {loadingMore ? "Carregando…" : "Carregar mais fotos"}
-          </button>
         </div>
       )}
 

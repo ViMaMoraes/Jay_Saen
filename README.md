@@ -17,7 +17,7 @@ Abra http://localhost:3000. Sem o Google Drive configurado, o site roda em **mod
 
 ## Personalizar
 
-- `lib/config.ts`: nomes, data, estilo da capa (`editorial` ou `cinematic`), estilo do álbum (`mosaic` ou `square`), quantas fotos recentes aparecem na página inicial (`homePreviewCount`, padrão 5), quantas a galeria carrega por vez (`galleryPageSize`, padrão 24), nome obrigatório e tamanho máximo dos arquivos.
+- `lib/config.ts`: nomes, data, estilo da capa (`editorial` ou `cinematic`), estilo do álbum (`mosaic` ou `square`), quantas fotos recentes aparecem na página inicial (`homePreviewCount`, padrão 5), as opções de fotos por página da galeria (`galleryPageSizes`, padrão 25, 50 e 100), nome obrigatório e tamanho máximo dos arquivos.
 - `public/assets/`: fotos do pré-wedding (`ja-1.jpg`, `ja-2.jpg`, `ja-3.jpg`).
 - `app/globals.css`: cores e estilos (tokens no topo do arquivo).
 
@@ -35,7 +35,7 @@ O site usa a conta Google dos noivos, com a permissão `drive.file`: ele só enx
    Abra o link, entre com a conta dos noivos e autorize. Se aparecer o aviso "app não verificado", clique em *Avançado → Acessar*. O script cria a pasta do álbum no Drive e mostra `GOOGLE_REFRESH_TOKEN` e `GOOGLE_DRIVE_FOLDER_ID`.
 5. Copie `.env.example` para `.env.local` e preencha as quatro variáveis.
 
-Cada envio vira um arquivo na pasta com o nome do convidado no nome do arquivo e o recado na descrição. A página inicial mostra as últimas fotos enviadas, e a página `/galeria` mostra todas, com envio e download.
+Cada envio vira um arquivo na pasta com o nome do convidado no nome do arquivo e o recado na descrição. A página inicial mostra as últimas fotos enviadas, e a página `/galeria` mostra todas, separadas em páginas, com envio e download.
 
 ## Publicar na Cloudflare
 
@@ -69,7 +69,8 @@ app/
 components/
   WeddingSite.tsx          página inicial: capa, casal, como funciona, últimas fotos
   GalleryPage.tsx          página da galeria
-  PhotoGrid.tsx            grade de fotos com download e "carregar mais"
+  PhotoGrid.tsx            grade de fotos com download
+  Pagination.tsx           páginas da galeria e fotos por página
   UploadProvider.tsx       estado do envio, modal e botão flutuante
   SiteChrome.tsx           menu, rodapé e área de arrastar fotos
   UploadModal.tsx          formulário e progresso do envio

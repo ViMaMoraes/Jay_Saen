@@ -33,12 +33,6 @@ export default function Lightbox({ photos, index, onClose, onStep }: Props) {
         <div className="lb-counter tnum">
           {index + 1} / {photos.length}
         </div>
-        {cur.download && (
-          <a className="lb-download" href={cur.download} download={cur.fileName}>
-            <DownloadIcon />
-            Baixar
-          </a>
-        )}
         <button className="icon-btn" onClick={onClose} aria-label="Fechar">
           <XIcon size={22} />
         </button>
@@ -67,6 +61,17 @@ export default function Lightbox({ photos, index, onClose, onStep }: Props) {
       <div className="lb-caption">
         <div className="lb-guest">{cur.guest}</div>
         {cur.msg && <div className="lb-msg">“{cur.msg}”</div>}
+        {cur.download ? (
+          <a className="lb-download" href={cur.download} download={cur.fileName}>
+            <DownloadIcon size={18} />
+            {cur.isVideo ? "Baixar vídeo" : "Baixar foto"}
+          </a>
+        ) : (
+          <span className="lb-download disabled" title="Foto de exemplo: não há arquivo para baixar">
+            <DownloadIcon size={18} />
+            Baixar foto
+          </span>
+        )}
       </div>
     </div>
   );

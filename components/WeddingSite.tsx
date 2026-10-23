@@ -132,7 +132,7 @@ export default function WeddingSite({ recentPhotos }: Props) {
           </div>
           <p>As últimas fotos enviadas pelos convidados.</p>
         </div>
-        <PhotoGrid initialPhotos={recentPhotos} initialCursor={null} preview={wedding.homePreviewCount} />
+        <PhotoGrid initialPhotos={recentPhotos} limit={wedding.homePreviewCount} />
         <div className="more">
           <Link href="/galeria" className="btn">
             Ver todas as fotos
